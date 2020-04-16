@@ -29,4 +29,10 @@ public class UserController {
     public String say() {
         return "say";
     }
+
+    @CountInvokeTimes(value = "testModel")
+    @GetMapping(value = "/test")
+    public String test() {
+        return "hello";
+    }
 }

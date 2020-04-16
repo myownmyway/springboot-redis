@@ -6,9 +6,9 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author wpw
@@ -38,11 +38,17 @@ public class CountInvokedTimesAspect {
             Method method = joinPoint.getTarget().getClass().getMethod(methodName, argTypes);
             boolean isAnnotationPresent = method.isAnnotationPresent(CountInvokeTimes.class);
             if (isAnnotationPresent) {
-                if (redisUtil.get(methodName) == null) {
-                    redisUtil.set(methodName, 1);
+                CountInvokeTimes methodAnnotation = method.getAnnotation(CountInvokeTimes.class);
+                String value = methodAnnotation.value();
+                if (StringUtils.isEmpty(value)) {
+                    value = methodName;
+                }
+                if (redisUtil.get(value) == null) {
+                    redisUtil.set(value, 1);
                 } else {
-                    AtomicInteger countTimes = (AtomicInteger) redisUtil.get(methodName);
-                    redisUtil.set(methodName, countTimes.incrementAndGet());
+                    Integer countTimes = (Integer) redisUtil.get(value);
+                    countTimes += 1;
+                    redisUtil.set(value, countTimes);
                 }
             }
         } catch (NoSuchMethodException e) {
